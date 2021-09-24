@@ -49,7 +49,7 @@ curl --silent --show-error https://packages.cloud.google.com/apt/doc/apt-key.gpg
 sudo sh -c "echo 'deb http://apt.kubernetes.io/ kubernetes-xenial main' > /etc/apt/sources.list.d/kubernetes.list"
 sudo apt-get update >> /dev/null
 
-push ~/vhive/
+pushd ~/vhive/
 sudo dpkg -i cri-tools_1.17.0~3_amd64.deb
 popd
 
