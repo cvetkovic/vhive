@@ -1,5 +1,6 @@
 # vHive Quickstart
-This guide describes how to set up an _N_-node vHive serverless cluster. See [here](https://github.blog/changelog/2021-04-13-table-of-contents-support-in-markdown-files/) to learn where to find table of contents.
+This guide describes how to set up an _N_-node vHive serverless cluster with Firecracker MicroVMs.
+See [here](https://github.blog/changelog/2021-04-13-table-of-contents-support-in-markdown-files/) to learn where to find table of contents.
 
 ## Table of Contents
 1. [Host platform requirements](#I-host-platform-requirements)
@@ -233,7 +234,9 @@ scripts/cloudlab/start_onenode_vhive_cluster.sh
 ```
 
 ## IV. Deploying and Invoking Functions in vHive
-This section is only for synchronous (i.e., Knative Serving) functions. Please refer to [Adding Benchmarks to vHive/Knative and Stock Knative](benchmarking/adding_benchmarks.md) for benchmarking asynchronous (i.e., Knative Eventing) case and more details about both.
+This section is only for synchronous (i.e., Knative Serving) functions. Please refer to
+[Adding Benchmarks to vHive/Knative and Stock Knative](https://github.com/ease-lab/vSwarm/blob/main/docs/adding_benchmarks.md)
+for benchmarking asynchronous (i.e., Knative Eventing) case and more details about both.
 
 ### 1. Deploy Functions
 **On the master node**, execute the following instructions below using **bash**:
@@ -241,7 +244,7 @@ This section is only for synchronous (i.e., Knative Serving) functions. Please r
 1. Optionally, configure the types and the number of functions to deploy in `examples/deployer/functions.json`.
 2. Run the deployer client:
     ```bash
-    source /etc/profile && go run examples/deployer/client.go
+    source /etc/profile && pushd ./examples/deployer && go build && popd && ./examples/deployer/deployer
     ```
     > **BEWARE:**
     >
@@ -258,10 +261,12 @@ This section is only for synchronous (i.e., Knative Serving) functions. Please r
 
 1. Run the invoker client:
     ```bash
-    go run examples/invoker/client.go
+    pushd ./examples/invoker && go build && popd && ./examples/invoker/invoker
     ```
 
     > **Note:**
+    >
+    > In order to run the invoker client on another node, copy the `endpoints.json` file to the target node and run the invoker, specifying the path to the file as `-endpointsFile path/to/endpoints.json`.
     >
     > There are runtime arguments (e.g., RPS or requests-per-second target, experiment duration) that you can specify if necessary.
     >
