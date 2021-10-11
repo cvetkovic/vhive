@@ -161,7 +161,7 @@ SSD-equipped nodes are highly recommended. Full list of CloudLab nodes can be fo
 
 1. Add the current worker to the Kubernetes cluster, by executing the command you have copied in step (3.2) **using sudo**:
     ```bash
-    sudo kubeadm join IP:PORT --token <token> --discovery-token-ca-cert-hash sha256:<hash> > >(tee -a /tmp/vhive-logs/kubeadm_join.stdout) 2> >(tee -a /tmp/vhive-logs/kubeadm_join.stderr >&2)
+    sudo kubeadm join IP:PORT --ignore-preflight-errors=KubeletVersion --token <token> --discovery-token-ca-cert-hash sha256:<hash> > >(tee -a /tmp/vhive-logs/kubeadm_join.stdout) 2> >(tee -a /tmp/vhive-logs/kubeadm_join.stderr >&2)
     ```
     > **Note:**
     >
