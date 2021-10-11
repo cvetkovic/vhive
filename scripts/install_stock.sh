@@ -48,7 +48,7 @@ pushd ~/vhive/
 sudo dpkg -i cri-tools_1.17.0~3_amd64.deb
 popd
 
-sudo apt-get -y install ebtables ethtool >> /dev/null
+sudo apt-get -y install ebtables ethtool conntrack >> /dev/null
 
 CNI_VERSION="v0.8.2"
 ARCH="amd64"
