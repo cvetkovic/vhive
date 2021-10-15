@@ -24,7 +24,7 @@
 
 sudo apt-get update >> /dev/null
 
-sudo apt-get -y install btrfs-tools pkg-config libseccomp-dev unzip tar libseccomp2 socat util-linux apt-transport-https curl ipvsadm >> /dev/null
+sudo apt-get -y install btrfs-progs pkg-config libseccomp-dev unzip tar libseccomp2 socat util-linux apt-transport-https curl ipvsadm >> /dev/null
 
 wget --continue --quiet https://github.com/google/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip
 sudo unzip -o -q protoc-3.11.4-linux-x86_64.zip -d /usr/local
@@ -44,11 +44,34 @@ containerd --version || echo "failed to build containerd"
 
 
 # Install k8s
-K8S_VERSION=1.20.6-00
-curl --silent --show-error https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-sudo sh -c "echo 'deb http://apt.kubernetes.io/ kubernetes-xenial main' > /etc/apt/sources.list.d/kubernetes.list"
+#K8S_VERSION=1.20.6-00
+#curl --silent --show-error https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+#sudo sh -c "echo 'deb http://apt.kubernetes.io/ kubernetes-xenial main' > /etc/apt/sources.list.d/kubernetes.list"
 sudo apt-get update >> /dev/null
-sudo apt-get -y install cri-tools ebtables ethtool kubeadm=$K8S_VERSION kubectl=$K8S_VERSION kubelet=$K8S_VERSION kubernetes-cni >> /dev/null
+sudo apt-get -y install cri-tools ebtables ethtool kubernetes-cni >> /dev/null
+
+CNI_VERSION="v0.8.2"
+ARCH="amd64"
+sudo mkdir -p /opt/cni/bin
+curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz" | sudo tar -C /opt/cni/bin -xz
+
+DOWNLOAD_DIR=/usr/local/bin
+sudo mkdir -p $DOWNLOAD_DIR
+
+CRICTL_VERSION="v1.17.0"
+ARCH="amd64"
+curl -L "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${ARCH}.tar.gz" | sudo tar -C $DOWNLOAD_DIR -xz
+
+cd $DOWNLOAD_DIR
+sudo cp /users/cvetkovi/kubernetes/server/bin/kubeadm .
+sudo cp /users/cvetkovi/kubernetes/server/bin/kubelet .
+sudo cp /users/cvetkovi/kubernetes/server/bin/kubectl .
+sudo chmod +x {kubeadm,kubelet,kubectl}
+
+RELEASE_VERSION="v0.4.0"
+curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /etc/systemd/system/kubelet.service
+sudo mkdir -p /etc/systemd/system/kubelet.service.d
+curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 # Install knative CLI
 KNATIVE_VERSION=v0.23.0
@@ -56,7 +79,6 @@ git clone --quiet --depth=1 --branch=$KNATIVE_VERSION -c advice.detachedHead=fal
 cd $HOME/client
 hack/build.sh -f
 sudo mv kn /usr/local/bin
-
 
 # Necessary for containerd as container runtime but not docker
 sudo modprobe overlay
@@ -70,3 +92,4 @@ net.bridge.bridge-nf-call-ip6tables = 1
 EOF
 
 sudo sysctl --quiet --system
+sudo systemctl enable --now kubelet
