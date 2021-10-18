@@ -63,9 +63,9 @@ ARCH="amd64"
 curl -L "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${ARCH}.tar.gz" | sudo tar -C $DOWNLOAD_DIR -xz
 
 cd $DOWNLOAD_DIR
-sudo cp /users/cvetkovi/kubernetes/server/bin/kubeadm .
-sudo cp /users/cvetkovi/kubernetes/server/bin/kubelet .
-sudo cp /users/cvetkovi/kubernetes/server/bin/kubectl .
+sudo cp /proj/faas-sched-PG0/kube_exe/kubeadm .
+sudo cp /proj/faas-sched-PG0/kube_exe/kubelet .
+sudo cp /proj/faas-sched-PG0/kube_exe/kubectl .
 sudo chmod +x {kubeadm,kubelet,kubectl}
 
 RELEASE_VERSION="v0.4.0"
