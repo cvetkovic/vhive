@@ -24,15 +24,15 @@
 
 sudo apt-get update >> /dev/null
 
-sudo apt-get -y install btrfs-tools pkg-config libseccomp-dev unzip tar libseccomp2 socat util-linux apt-transport-https curl ipvsadm >> /dev/null
+sudo apt-get -y install btrfs-progs pkg-config libseccomp-dev unzip tar libseccomp2 socat util-linux apt-transport-https curl ipvsadm >> /dev/null
 
-wget --continue --quiet https://github.com/google/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip
-sudo unzip -o -q protoc-3.11.4-linux-x86_64.zip -d /usr/local
+wget --continue --quiet https://github.com/protocolbuffers/protobuf/releases/download/v3.19.0/protoc-3.19.0-linux-x86_64.zip
+sudo unzip -o -q protoc-3.19.0-linux-x86_64.zip -d /usr/local
 
-wget --continue --quiet https://github.com/containerd/containerd/releases/download/v1.4.1/containerd-1.4.1-linux-amd64.tar.gz
-sudo tar -C /usr/local -xzf containerd-1.4.1-linux-amd64.tar.gz
+wget --continue --quiet https://github.com/containerd/containerd/releases/download/v1.5.7/containerd-1.5.7-linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf containerd-1.5.7-linux-amd64.tar.gz
 
-wget --continue --quiet https://github.com/opencontainers/runc/releases/download/v1.0.0-rc92/runc.amd64
+wget --continue --quiet https://github.com/opencontainers/runc/releases/download/v1.0.2/runc.amd64
 mv runc.amd64 runc
 sudo install -D -m0755 runc /usr/local/sbin/runc
 
@@ -45,6 +45,7 @@ containerd --version || echo "failed to build containerd"
 
 # Install k8s
 pushd ~/vhive/
+wget https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_18.04/amd64/cri-tools_1.17.0~3_amd64.deb
 sudo dpkg -i cri-tools_1.17.0~3_amd64.deb
 popd
 
@@ -65,9 +66,9 @@ curl -L "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL
 RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
 ARCH="amd64"
 cd $DOWNLOAD_DIR
-sudo cp /proj/faas-sched-PG0/kubernetes_release/v1/kubeadm .
-sudo cp /proj/faas-sched-PG0/kubernetes_release/v1/kubelet .
-sudo cp /proj/faas-sched-PG0/kubernetes_release/v1/kubectl .
+sudo cp /proj/faas-sched-PG0/kube_exe/kubeadm .
+sudo cp /proj/faas-sched-PG0/kube_exe/kubelet .
+sudo cp /proj/faas-sched-PG0/kube_exe/kubectl .
 sudo chmod +x {kubeadm,kubelet,kubectl}
 
 RELEASE_VERSION="v0.4.0"
@@ -78,7 +79,7 @@ curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSIO
 sudo systemctl enable --now kubelet
 
 # Install knative CLI
-KNATIVE_VERSION=v0.23.0
+KNATIVE_VERSION=v0.26.0
 git clone --quiet --depth=1 --branch=$KNATIVE_VERSION -c advice.detachedHead=false https://github.com/knative/client.git $HOME/client
 cd $HOME/client
 hack/build.sh -f
