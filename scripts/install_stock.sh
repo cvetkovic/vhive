@@ -44,39 +44,31 @@ containerd --version || echo "failed to build containerd"
 
 
 # Install k8s
-pushd ~/vhive/
-wget https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_18.04/amd64/cri-tools_1.17.0~3_amd64.deb
-sudo dpkg -i cri-tools_1.17.0~3_amd64.deb
-popd
+curl --silent --show-error https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+sudo sh -c "echo 'deb http://apt.kubernetes.io/ kubernetes-xenial main' > /etc/apt/sources.list.d/kubernetes.list"
+sudo apt-get update >> /dev/null
+sudo apt-get -y install cri-tools ebtables ethtool kubernetes-cni iproute2 socat util-linux mount conntrack iptables >> /dev/null
 
-sudo apt-get -y install ebtables ethtool conntrack >> /dev/null
-
-CNI_VERSION="v0.8.2"
-ARCH="amd64"
-sudo mkdir -p /opt/cni/bin
-curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz" | sudo tar -C /opt/cni/bin -xz
-
-DOWNLOAD_DIR=/usr/local/bin
-sudo mkdir -p $DOWNLOAD_DIR
-
-CRICTL_VERSION="v1.17.0"
-ARCH="amd64"
-curl -L "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${ARCH}.tar.gz" | sudo tar -C $DOWNLOAD_DIR -xz
-
-RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
-ARCH="amd64"
-cd $DOWNLOAD_DIR
-sudo cp /proj/faas-sched-PG0/kube_exe/kubeadm .
-sudo cp /proj/faas-sched-PG0/kube_exe/kubelet .
-sudo cp /proj/faas-sched-PG0/kube_exe/kubectl .
+# kubeadm=$K8S_VERSION kubectl=$K8S_VERSION kubelet=$K8S_VERSION 
+sudo cp /proj/faas-sched-PG0/kube_exe/original_v1.20.6/kubeadm /usr/bin/kubeadm
+sudo cp /proj/faas-sched-PG0/kube_exe/original_v1.20.6/kubelet /usr/bin/kubelet
+sudo cp /proj/faas-sched-PG0/kube_exe/original_v1.20.6/kubectl /usr/bin/kubectl
 sudo chmod +x {kubeadm,kubelet,kubectl}
 
-RELEASE_VERSION="v0.4.0"
-curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /etc/systemd/system/kubelet.service
-sudo mkdir -p /etc/systemd/system/kubelet.service.d
-curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+sudo mkdir -p /etc/systemd/system/kubelet.service.d/
+sudo cp /proj/faas-sched-PG0/kube_exe/10-kubeadm.conf /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+sudo cp /proj/faas-sched-PG0/kube_exe/kubelet.service /lib/systemd/system/kubelet.service
 
-sudo systemctl enable --now kubelet
+# kubelet config
+sudo mkdir -p /etc/kubernetes/manifests
+
+sudo systemctl enable 'kubelet.service' >/dev/null
+sudo systemctl --system daemon-reload >/dev/null
+sudo systemctl start 'kubelet.service' >/dev/null
+
+# kubeadm config
+sudo systemctl daemon-reload 2>/dev/null
+sudo systemctl restart kubelet 2>/dev/null
 
 # Install knative CLI
 KNATIVE_VERSION=v0.26.0
