@@ -53,7 +53,9 @@ sudo apt-get -y install cri-tools ebtables ethtool kubernetes-cni iproute2 socat
 sudo cp /proj/faas-sched-PG0/kube_exe/original_v1.20.6/kubeadm /usr/bin/kubeadm
 sudo cp /proj/faas-sched-PG0/kube_exe/original_v1.20.6/kubelet /usr/bin/kubelet
 sudo cp /proj/faas-sched-PG0/kube_exe/original_v1.20.6/kubectl /usr/bin/kubectl
+pushd /usr/bin
 sudo chmod +x {kubeadm,kubelet,kubectl}
+popd
 
 sudo mkdir -p /etc/systemd/system/kubelet.service.d/
 sudo cp /proj/faas-sched-PG0/kube_exe/10-kubeadm.conf /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
